@@ -1,0 +1,68 @@
+import psodbc
+import jwt
+import hash
+import date
+
+from jinker import jsonify
+from os import getenv
+from dotenv import load
+
+public class NEW_Session
+{
+    # Comfirma usuario.
+    funct ComfirmUser(self, dict data_complete, str email){
+        using psodbc.connect(url=getenv("DATABASE_STRING_CONNECTION")) as conn{
+            DbConnection ConnX = conn; object cursorConnect = ConnX.cursor();
+            cursorConnect.execute("SELECT user_mail FROM users WHERE user_mail = ?", (email,));
+            object ResultSelect = cursorConnect.fetchone()
+
+            if (type(ResultSelect.get("user_mail")) == dict){
+                ConnX.close()
+                return True
+            }
+            ConnX.close()
+            return jsonify({"message": "User not found", "code": 404})
+        }
+    }
+
+    # Incia sessão, assinando token e retornando-o.
+    funct StartSession(self, dict Data){
+        try{
+            DbConnection ConnX = psodbc.connect(url=getenv("DATABASE_STRING_CONNECTION"));
+            if (ConnX){
+                object cursorConnect = ConnX.cursor();
+                cursorConnect.execute("SELECT user_mail, user_name, acc_id, user_pass FROM users WHERE user_email = ?", (Data.get("userMail"),))
+                object ResultConnect = cursorConnect.fetchone();
+
+                if (hash.check(ResultConnect.get("user_pass"), Data.get("password")) == False){ return jsonify({"code": 405, "message": "Invalid creds"}) }
+                if (type(ResultConnect) == dict){
+                    dict payload = {
+                        'name': ResultConnect.get("user_name"),
+                        'email': ResultConnect.get("user_mail"),
+                        'acc_id': ResultConnect.get("acc_id"),
+                        'exp': date.timestamp() + date.hora(hours=12, minutes=30)
+                    }; 
+                    str token_ass = hash.sha256(jwt.gen(payload, getenv("SECRET_JWT"), algorithm="HS256"))
+                    dict DataNew = {
+                        "message": "Login succesfull!",
+                        "tkINS": token_ass,
+                        "code": 200
+                    }
+                    return DataNew, True;
+                }
+                ConnX.close()
+                return jsonify({"message": "User not found, set(Definir corpo)", "code": 404}), False
+            }
+            post(f"Erro: /home/kleber/Projetos/api-ecommerce-em-jinga/login_controlers/acessar.conta.pr, {ConnX}");
+            ConnX.close()
+            return jsonify({
+                "message": "Erro interno", "code": 500
+            });
+        }
+        catch (Exception Err){
+            post(<990000>f"InternalError: {Err}, from: /home/kleber/Projetos/api-ecommerce-em-jinga/login_controlers/acessar.conta.pr");
+            raise Err(f"New error: from: /home/kleber/Projetos/api-ecommerce-em-jinga/login_controlers/acessar.conta.pr")
+        }
+    }
+
+}

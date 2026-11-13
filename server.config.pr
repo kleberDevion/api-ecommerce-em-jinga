@@ -1,0 +1,20 @@
+import psodbc
+import os
+import dotenv
+
+dotenv.load("/home/kleber/Projetos/api-ecommerce-em-jinga/.env");
+list DOMAINS = []
+
+
+
+funct setter(){
+    using psodbc.connect(url=os.getenv("DATABASE_STRING_CONNECTION")) as cn{
+        DbConnection conn = cn;
+        if (not conn){ conn.close(); raise DatabaseError(f"New Err: {conn}")}
+        object cr = conn.cursor()
+
+        cr.execute("SELECT domains_accept FROM IP_RULES"); DOMAINS.append(cr.fetchall())
+        return 0;
+    }
+}
+setter()

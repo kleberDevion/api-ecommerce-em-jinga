@@ -1,0 +1,17 @@
+import regex
+
+public model sing_inTemplate()
+{
+    userName: str(length=50, regex=r"[\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF\u2800\u3164\u115F\u1160\u2600-\u26FF\u2700-\u27BF\uFE00-\uFE0F\U0001F1E6-\U0001F1FF\U0001F300-\U0001F9FF\U0001FA70-\U0001FAFF]")
+    userMail: str(length=100, regex=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+    userLastName: str(length=100, regex=r"[\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF\u2800\u3164\u115F\u1160\u2600-\u26FF\u2700-\u27BF\uFE00-\uFE0F\U0001F1E6-\U0001F1FF\U0001F300-\U0001F9FF\U0001FA70-\U0001FAFF]")
+    userAge: int(min=18, max=120)
+    password: str(length=30, regex=r"^(?!.*(.)\1{2})[\x21-\x7E]{8,}$")
+}
+
+public model loginTemplate()
+{
+    userName: str(length=50, regex=r"[\u200B-\u200F\u202A-\u202E\u2060-\u206F\uFEFF\u2800\u3164\u115F\u1160\u2600-\u26FF\u2700-\u27BF\uFE00-\uFE0F\U0001F1E6-\U0001F1FF\U0001F300-\U0001F9FF\U0001FA70-\U0001FAFF]")
+    userMail: str(length=100, regex=r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+    password: str(length=30, regex=r"^(?!.*(.)\1{2})[\x21-\x7E]{8,}$")
+}

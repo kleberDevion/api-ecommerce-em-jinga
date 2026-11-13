@@ -1,0 +1,68 @@
+from jinker import request, JinkerResponse, jsonify, Jinker, cors, render
+from os import getenv, environ
+from dotenv import load
+
+import jwt
+
+import "/home/kleber/Projetos/api-ecommerce-em-jinga/server.config.pr" as ConfigureServer
+import "/home/kleber/Projetos/api-ecommerce-em-jinga/RoutesTemplates/LoginTemplate.pr"
+import "/home/kleber/Projetos/api-ecommerce-em-jinga/login_controlers/acessar.conta.pr" as RestLogin
+
+load("/home/kleber/Projetos/api-ecommerce-em-jinga/.env")
+
+public class RestControllerMain
+{
+    private static Object Http = Jinker("SERVICE-MAIN", route_prefix="/v0/service/api/", oauth={"poolip": True, "tls": True, "rate": getenv("REQUEST_LIMIT_AMT"), "bloq": getenv("DAYS_BAN_IP_REQUISER")});
+    private static Object CrossOrigins = cors(Http, origins=[ConfigureServer.DOMAINS]);
+
+    @Http.middleware()
+    private static funct Xintercept()
+    {
+        dict content_header = request.headers.get("Authorization");
+        if (jwt.check(content_header, getenv("SECRET_JWT")) == Null){
+            return JinkerResponse().send(
+                {
+                    "Content-Type": "application/json",
+                    "ServerResponse": {
+                        "code": 403,
+                        "message": "Invalid token"
+                    }
+                }
+            )
+        };
+    };
+
+    # Index route.
+    @Http.get("/", auth=CrossOrigins.origins(), middleware=Http.middleware)
+    private static funct index_route()
+    {
+        return render("/home/kleber/Projetos/api-ecommerce-em-jinga/404_template", file="404.html");
+    };
+
+    # Login.
+    @Http.post("/new/session", model=LoginTemplate.loginTemplate, middleware=Http.middleware, auth=CrossOrigins.origins())
+    private static funct NewSession_Handler()
+    {
+        dict userData = request.get_json();
+
+        if (RestLogin.NEW_Session().ComfirmUser(userData, userData.get("user_mail")) == True){
+            JinkerResponse GettokenAss = RestLogin.NEW_Session().StartSession(userData);
+            # ^ retorno: tupla -> (Objeto, bool)
+            if (count bool(True) in GettokenAss){
+                return JinkerResponse()
+                .cookie("sid", GettokenAss[0]["tkINS"], max_age=45000)
+                .send({
+                    "Content-Type": "application/json",
+                    "ServerResponse": {
+                        "code": GettokenAss[0]["code"],
+                        "message": GettokenAss[0]["message"]
+                    }
+                })
+            }
+        }
+        return JinkerResponse().header('Content-Type', 'application/json').send({
+            "message": GettokenAss[0]["message"],
+            "code": GettokenAss[0]["code"]
+        })
+    };
+}
